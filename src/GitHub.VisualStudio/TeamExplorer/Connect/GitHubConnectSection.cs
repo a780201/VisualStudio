@@ -3,7 +3,6 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
-using System.Reactive.Linq;
 using GitHub.Api;
 using GitHub.Exports;
 using GitHub.Extensions;
@@ -240,10 +239,9 @@ namespace GitHub.VisualStudio.TeamExplorer.Connect
 
         void ShowNotification(ISimpleRepositoryModel newrepo, string msg)
         {
-            var teServices = ServiceProvider.GetExportedValue<ITeamExplorerServices>();
-            
-            teServices.ClearNotifications();
-            teServices.ShowMessage(
+            var vsservices = ServiceProvider.GetExportedValue<IVSServices>();
+            vsservices.ClearNotifications();
+            vsservices.ShowMessage(
                 msg,
                 new RelayCommand(o =>
                 {
@@ -255,7 +253,7 @@ namespace GitHub.VisualStudio.TeamExplorer.Connect
                     */
                     var prefix = str.Substring(0, 2);
                     if (prefix == "u:")
-                        OpenInBrowser(ServiceProvider.GetExportedValue<IVisualStudioBrowser>(), new Uri(str.Substring(2)));
+                        OpenInBrowser(ServiceProvider.TryGetService<IVisualStudioBrowser>(), new Uri(str.Substring(2)));
                     else if (prefix == "o:")
                     {
                         if (ErrorHandler.Succeeded(ServiceProvider.GetSolution().OpenSolutionViaDlg(str.Substring(2), 1)))
@@ -263,7 +261,6 @@ namespace GitHub.VisualStudio.TeamExplorer.Connect
                     }
                     else if (prefix == "c:")
                     {
-                        var vsservices = ServiceProvider.GetExportedValue<IVSServices>();
                         vsservices.SetDefaultProjectPath(newrepo.LocalPath);
                         if (ErrorHandler.Succeeded(ServiceProvider.GetSolution().CreateNewProjectViaDlg(null, null, 0)))
                             ServiceProvider.TryGetService<ITeamExplorer>()?.NavigateToPage(new Guid(TeamExplorerPageIds.Home), null);
@@ -324,10 +321,6 @@ namespace GitHub.VisualStudio.TeamExplorer.Connect
 
         void StartFlow(UIControllerFlow controllerFlow)
         {
-            var notifications = ServiceProvider.GetExportedValue<INotificationDispatcher>();
-            var teServices = ServiceProvider.GetExportedValue<ITeamExplorerServices>();
-            notifications.AddListener(teServices);
-
             var uiProvider = ServiceProvider.GetExportedValue<IUIProvider>();
             uiProvider.GitServiceProvider = ServiceProvider;
             var ret = uiProvider.SetupUI(controllerFlow, SectionConnection);
@@ -339,8 +332,6 @@ namespace GitHub.VisualStudio.TeamExplorer.Connect
                     isCreating = true;
             });
             uiProvider.RunUI();
-
-            notifications.RemoveListener();
         }
 
         bool disposed;

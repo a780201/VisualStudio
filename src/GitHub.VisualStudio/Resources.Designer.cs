@@ -475,15 +475,6 @@ namespace GitHub.VisualStudio {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Repository created successfully..
-        /// </summary>
-        public static string RepositoryPublishedMessage {
-            get {
-                return ResourceManager.GetString("RepositoryPublishedMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Resend.
         /// </summary>
         public static string resendCodeButtonContent {
